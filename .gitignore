@@ -1,0 +1,47 @@
+# ---- Python / Django ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual Envs
+env/
+venv/
+.venv/
+
+# Django stuff
+db.sqlite3
+*.pot
+*.log
+media/
+staticfiles/
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Env-Variablen
+.env
+*.env
+
+# Coverage / Test
+.coverage
+htmlcov/
+.cache/
+pytest_cache/
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Django Media & Staticfiles
+media/
+staticfiles/
+# falls du die default static/ nutzt:
+static/
+
+# Byte- und Log-Files
+*.log
