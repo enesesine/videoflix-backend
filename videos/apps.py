@@ -7,5 +7,5 @@ class VideosConfig(AppConfig):
 
     # apps.py
 def ready(self):
-    import videos.signals      # Pfad anpassen
+    import accounts.signals      # Pfad anpassen
 
