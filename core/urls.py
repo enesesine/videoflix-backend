@@ -1,41 +1,25 @@
-"""
-URL configuration for core project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 # core/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.authtoken.views import obtain_auth_token
-# ➜ fehlende Importe ergänzen
 from django.conf import settings
 from django.conf.urls.static import static
-from accounts.views import RegisterView, LoginView   
 
+from accounts.views import RegisterView, LoginView, ForgotPasswordView
 
 urlpatterns = [
+    # Admin-Interface
     path("admin/", admin.site.urls),
 
-    # Auth explizit öffentlich
-    path("api/auth/register/", RegisterView.as_view()),
-    path("api/auth/login/",    LoginView.as_view()),
+    # Auth-Endpoints (öffentlich)
+    path("api/auth/register/", RegisterView.as_view(), name="auth-register"),
+    path("api/auth/login/",    LoginView.as_view(),    name="auth-login"),
 
-    # REST-API (videos) bleibt geschützt
+    # Rest-API für Videos (geschützt durch Token)
     path("api/", include("videos.urls")),
+     path("api/auth/forgot-password/", ForgotPasswordView.as_view(), name="forgot-password"),
 ]
 
-# Medien-Dateien nur im DEBUG-Modus servieren
+# Medien-Dateien nur im DEBUG-Modus ausliefern
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT

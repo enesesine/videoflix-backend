@@ -43,5 +43,3 @@ staticfiles/
 # falls du die default static/ nutzt:
 static/
 
-# Byte- und Log-Files
-*.log
