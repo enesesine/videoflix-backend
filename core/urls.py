@@ -16,7 +16,7 @@ urlpatterns = [
 
     # Rest-API für Videos (geschützt durch Token)
     path("api/", include("videos.urls")),
-     path("api/auth/forgot-password/", ForgotPasswordView.as_view(), name="forgot-password"),
+    path("api/auth/forgot-password/",ForgotPasswordView.as_view()),
 ]
 
 # Medien-Dateien nur im DEBUG-Modus ausliefern
