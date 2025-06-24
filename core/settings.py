@@ -35,14 +35,13 @@ INSTALLED_APPS = [
     # Third-Party
     "rest_framework",
     "rest_framework.authtoken",
-    "django_rq",      #  ← wichtig!
+    "django_rq",
     "accounts",
     "videos",
-    
-     
 ]
+
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",          # ← GANZ NACH OBEN!
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -58,7 +57,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates',],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,7 +83,6 @@ DATABASES = {
         "PORT": os.getenv("DB_PORT", 5432),
     }
 }
-
 
 
 # Password validation
@@ -125,12 +123,13 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 RQ_QUEUES = {
     "default": {
         "HOST": os.environ.get("REDIS_HOST", "redis"),
         "PORT": int(os.environ.get("REDIS_PORT", 6379)),
         "DB": int(os.environ.get("REDIS_DB", 0)),
-        "DEFAULT_TIMEOUT": 900,   # 15 min
+        "DEFAULT_TIMEOUT": 900,
     }
 }
 
@@ -147,5 +146,13 @@ REST_FRAMEWORK = {
     ],
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# E-Mail Konfiguration über Gmail App-Passwort
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'videoflixresetpw@gmail.com'
+# Dein 16-stelliges App-Passwort, hier ohne Leerzeichen
+EMAIL_HOST_PASSWORD = 'gdbfdyeeaohxdmdv'
 DEFAULT_FROM_EMAIL = 'no-reply@videoflix.com'
