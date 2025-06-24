@@ -12,7 +12,10 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', default='django-insecure-@#x5h3zj!g+8g1v@2^b6^9$8&f1r7g$@t3v!p4#=g0r5qzj4m3')
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    default='django-insecure-@#x5h3zj!g+8g1v@2^b6^9$8&f1r7g$@t3v!p4#=g0r5qzj4m3'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,7 +40,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "django_rq",
     "accounts",
-    "videos",
+    "videos.apps.VideosConfig",
 ]
 
 MIDDLEWARE = [
@@ -147,12 +150,19 @@ REST_FRAMEWORK = {
 }
 
 
-# E-Mail Konfiguration über Gmail App-Passwort
+# ─────────── Frontend-URL für Passwort-Reset ───────────
+# wird aus deiner .env geladen (FRONTEND_URL=http://localhost:4200)
+# Frontend-URL für Passwort-Reset (wird in E-Mails verwendet)
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:4200')
+
+# E-Mail über den Postfix-Server auf Deinem Host
+# (macOS/Windows: host.docker.internal → Host-Maschine)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'videoflixresetpw@gmail.com'
-# Dein 16-stelliges App-Passwort, hier ohne Leerzeichen
-EMAIL_HOST_PASSWORD = 'gdbfdyeeaohxdmdv'
-DEFAULT_FROM_EMAIL = 'no-reply@videoflix.com'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'host.docker.internal')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 25))
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
+# Wenn Dein Postfix kein Auth benötigt, lasse USER/PASSWORD leer:
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@videoflix.com')
