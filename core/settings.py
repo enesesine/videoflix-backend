@@ -9,21 +9,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ────────────────────────────────────────────────────────
+# Basis
+# ────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
-    'SECRET_KEY',
-    default='django-insecure-@#x5h3zj!g+8g1v@2^b6^9$8&f1r7g$@t3v!p4#=g0r5qzj4m3'
+    "SECRET_KEY",
+    default="django-insecure-@#x5h3zj!g+8g1v@2^b6^9$8&f1r7g$@t3v!p4#=g0r5qzj4m3",
 )
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = ["*"]  # dev – für Produktion einschränken
 
-ALLOWED_HOSTS = ['*']  # für lokale Entwicklung, anpassen für Produktion
-
-
-# Application definition
+# ────────────────────────────────────────────────────────
+# Apps
+# ────────────────────────────────────────────────────────
+AUTH_USER_MODEL = "accounts.User"
 
 INSTALLED_APPS = [
     # Django-Core
@@ -33,16 +34,24 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "corsheaders",
 
-    # Third-Party
+    # Third‑Party
+    "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
-    "django_rq",
+
+    # Projekt-Apps (CustomUser muss VOR authemail kommen!)
     "accounts",
+    "authemail",
+    "django_rq",
+
+    # Domain
     "videos.apps.VideosConfig",
 ]
 
+# ────────────────────────────────────────────────────────
+# Middleware
+# ────────────────────────────────────────────────────────
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -55,27 +64,31 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = "core.urls"
 
+# ────────────────────────────────────────────────────────
+# Templates
+# ────────────────────────────────────────────────────────
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+WSGI_APPLICATION = "core.wsgi.application"
 
-
-# Database
+# ────────────────────────────────────────────────────────
+# Datenbank
+# ────────────────────────────────────────────────────────
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -87,59 +100,58 @@ DATABASES = {
     }
 }
 
-
-# Password validation
+# ────────────────────────────────────────────────────────
+# Passwörter
+# ────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-
-# Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+# ────────────────────────────────────────────────────────
+# Internationalisierung
+# ────────────────────────────────────────────────────────
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-
-# Static & Media files
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# WhiteNoise config
+# ────────────────────────────────────────────────────────
+# Static & Media
+# ────────────────────────────────────────────────────────
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
+# ────────────────────────────────────────────────────────
+# Django‑RQ
+# ────────────────────────────────────────────────────────
 RQ_QUEUES = {
     "default": {
-        "HOST": os.environ.get("REDIS_HOST", "redis"),
-        "PORT": int(os.environ.get("REDIS_PORT", 6379)),
-        "DB": int(os.environ.get("REDIS_DB", 0)),
+        "HOST": os.getenv("REDIS_HOST", "redis"),
+        "PORT": int(os.getenv("REDIS_PORT", 6379)),
+        "DB": int(os.getenv("REDIS_DB", 0)),
         "DEFAULT_TIMEOUT": 900,
     }
 }
 
+# ────────────────────────────────────────────────────────
+# CORS
+# ────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
 ]
 
+# ────────────────────────────────────────────────────────
+# REST‑Framework
+# ────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
@@ -149,20 +161,31 @@ REST_FRAMEWORK = {
     ],
 }
 
+# ────────────────────────────────────────────────────────
+# Frontend‑URL (für Links in E‑Mails)
+# ────────────────────────────────────────────────────────
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
 
-# ─────────── Frontend-URL für Passwort-Reset ───────────
-# wird aus deiner .env geladen (FRONTEND_URL=http://localhost:4200)
-# Frontend-URL für Passwort-Reset (wird in E-Mails verwendet)
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:4200')
+# ────────────────────────────────────────────────────────
+# Mail‑Konfiguration
+# ────────────────────────────────────────────────────────
+EMAIL_BACKEND       = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST          = os.getenv("EMAIL_HOST", "host.docker.internal")
+EMAIL_PORT          = int(os.getenv("EMAIL_PORT", 25))
+EMAIL_HOST_USER     = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS       = bool(int(os.getenv("EMAIL_USE_TLS", 0)))
+EMAIL_USE_SSL       = bool(int(os.getenv("EMAIL_USE_SSL", 0)))
+DEFAULT_FROM_EMAIL  = os.getenv("DEFAULT_FROM_EMAIL", "Videoflix ✦ Support <no-reply@videoflix.com>")
 
-# E-Mail über den Postfix-Server auf Deinem Host
-# (macOS/Windows: host.docker.internal → Host-Maschine)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'host.docker.internal')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 25))
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = False
-# Wenn Dein Postfix kein Auth benötigt, lasse USER/PASSWORD leer:
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@videoflix.com')
+# Variablen, die authemail DIREKT benötigt
+EMAIL_FROM = DEFAULT_FROM_EMAIL  # Absenderadresse für alle Systemmails
+EMAIL_BCC  = ""                 # optional, leer lassen wenn nicht genutzt
+
+# ────────────────────────────────────────────────────────
+# django‑rest‑authemail
+# ────────────────────────────────────────────────────────
+AUTHEMAIL_CONFIRM_EMAIL_ON_GET = False  # Link führt erst ins Frontend
+AUTHEMAIL_PASSWORD_RESET_EXPIRE = 48    # Stunden gültig
+AUTHEMAIL_TOKEN_EXPIRY          = 30    # Tage gültig
+AUTHEMAIL_SEND_FROM             = EMAIL_FROM
