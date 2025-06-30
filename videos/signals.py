@@ -6,6 +6,6 @@ from .tasks import generate_resolutions
 
 @receiver(post_save, sender=Video)
 def enqueue_transcoding(sender, instance: Video, created, **kwargs):
-    # Nur direkt nach dem ersten Speichern
+    # Nur direkt nach dem ersten Speichern und wenn eine Datei existiert
     if created and instance.file:
-        generate_resolutions.queue(instance.id)
+        generate_resolutions.delay(instance.id)

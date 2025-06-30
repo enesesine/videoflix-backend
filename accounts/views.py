@@ -1,7 +1,7 @@
 # accounts/views.py
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator, PasswordResetTokenGenerator
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -19,9 +19,7 @@ from django.conf import settings
 User = get_user_model()
 
 
-# ────────────────────────────────────────────────────────────────
-# Registration
-# ────────────────────────────────────────────────────────────────
+# ─── Registration ───────────────────────────────────────────────
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, min_length=8)
@@ -41,8 +39,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
-    serializer_class   = RegisterSerializer
-    queryset           = User.objects.all()
+    serializer_class = RegisterSerializer
+    queryset = User.objects.all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -58,9 +56,7 @@ class RegisterView(generics.CreateAPIView):
         return Response({"token": token.key}, status=status.HTTP_201_CREATED)
 
 
-# ────────────────────────────────────────────────────────────────
-# Login per E-Mail + Passwort
-# ────────────────────────────────────────────────────────────────
+# ─── Login per E-Mail + Passwort ────────────────────────────────
 class EmailAuthTokenSerializer(serializers.Serializer):
     email = serializers.EmailField(write_only=True)
     password = serializers.CharField(
@@ -84,7 +80,7 @@ class EmailAuthTokenSerializer(serializers.Serializer):
 
 class LoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
-    serializer_class   = EmailAuthTokenSerializer
+    serializer_class = EmailAuthTokenSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={"request": request})
@@ -94,16 +90,14 @@ class LoginView(ObtainAuthToken):
         return Response({"token": token.key}, status=status.HTTP_200_OK)
 
 
-# ────────────────────────────────────────────────────────────────
-# Forgot Password: schickt eine Reset-Mail mit uid+token
-# ────────────────────────────────────────────────────────────────
+# ─── Forgot Password: schickt eine Reset-Mail mit uid+token ─────
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
-    serializer_class   = ForgotPasswordSerializer
+    serializer_class = ForgotPasswordSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -123,8 +117,7 @@ class ForgotPasswordView(APIView):
                 fail_silently=False,
             )
         except User.DoesNotExist:
-            # for security, don't reveal whether the email exists
-            pass
+            pass  # Sicherheit: nicht verraten, ob die E-Mail existiert
 
         return Response(
             {"detail": "If that email is registered, you will receive a reset link."},
@@ -132,9 +125,7 @@ class ForgotPasswordView(APIView):
         )
 
 
-# ────────────────────────────────────────────────────────────────
-# Reset Password: nimmt uid + token + neues Passwort entgegen
-# ────────────────────────────────────────────────────────────────
+# ─── Reset Password: nimmt uid + token + neues Passwort entgegen ──
 class ResetPasswordSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()
@@ -162,7 +153,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 class ResetPasswordView(APIView):
     permission_classes = [AllowAny]
-    serializer_class   = ResetPasswordSerializer
+    serializer_class = ResetPasswordSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
