@@ -6,7 +6,5 @@ class VideosConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
 
     def ready(self):
-        # Damit deine RQ-Tasks registriert werden
-        import videos.tasks
-        # Wenn du später noch Signals hast, kannst du sie hier importieren:
-        # import videos.signals
+        # registriere deine Signals
+        import videos.signals

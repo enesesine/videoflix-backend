@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Third‑Party
+    # Third-Party
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
@@ -72,6 +72,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
+        # Hier liegt dein templates/authemail-Verzeichnis
         "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -79,7 +80,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core.context_processors.frontend_url",  # liefert {{ frontend_url }}
             ],
+            "debug": DEBUG,
         },
     },
 ]
@@ -131,7 +134,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ────────────────────────────────────────────────────────
-# Django‑RQ
+# Django-RQ
 # ────────────────────────────────────────────────────────
 RQ_QUEUES = {
     "default": {
@@ -145,29 +148,23 @@ RQ_QUEUES = {
 # ────────────────────────────────────────────────────────
 # CORS
 # ────────────────────────────────────────────────────────
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-]
+CORS_ALLOWED_ORIGINS = ["http://localhost:4200"]
 
 # ────────────────────────────────────────────────────────
-# REST‑Framework
+# REST-Framework
 # ────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
 }
 
 # ────────────────────────────────────────────────────────
-# Frontend‑URL (für Links in E‑Mails)
+# Frontend-URL (für Links in E-Mails)
 # ────────────────────────────────────────────────────────
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
 
 # ────────────────────────────────────────────────────────
-# Mail‑Konfiguration
+# Mail-Konfiguration
 # ────────────────────────────────────────────────────────
 EMAIL_BACKEND       = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST          = os.getenv("EMAIL_HOST", "host.docker.internal")
@@ -178,14 +175,17 @@ EMAIL_USE_TLS       = bool(int(os.getenv("EMAIL_USE_TLS", 0)))
 EMAIL_USE_SSL       = bool(int(os.getenv("EMAIL_USE_SSL", 0)))
 DEFAULT_FROM_EMAIL  = os.getenv("DEFAULT_FROM_EMAIL", "Videoflix ✦ Support <no-reply@videoflix.com>")
 
-# Variablen, die authemail DIREKT benötigt
-EMAIL_FROM = DEFAULT_FROM_EMAIL  # Absenderadresse für alle Systemmails
-EMAIL_BCC  = ""                 # optional, leer lassen wenn nicht genutzt
+# Authemail braucht diese Variablen explizit:
+EMAIL_FROM = DEFAULT_FROM_EMAIL
+EMAIL_BCC  = ""
 
 # ────────────────────────────────────────────────────────
-# django‑rest‑authemail
+# django-rest-authemail
 # ────────────────────────────────────────────────────────
-AUTHEMAIL_CONFIRM_EMAIL_ON_GET = False  # Link führt erst ins Frontend
-AUTHEMAIL_PASSWORD_RESET_EXPIRE = 48    # Stunden gültig
-AUTHEMAIL_TOKEN_EXPIRY          = 30    # Tage gültig
-AUTHEMAIL_SEND_FROM             = EMAIL_FROM
+AUTHEMAIL_CONFIRM_EMAIL_ON_GET    = True
+# jetzt wird bei GET /api/accounts/signup/verify/?code=…
+# direkt weitergeleitet auf:
+AUTHEMAIL_CONFIRM_REDIRECT_URL    = f"{FRONTEND_URL}/email-verify/"
+AUTHEMAIL_PASSWORD_RESET_EXPIRE   = 48  # Stunden
+AUTHEMAIL_TOKEN_EXPIRY            = 30  # Tage
+AUTHEMAIL_SEND_FROM               = EMAIL_FROM

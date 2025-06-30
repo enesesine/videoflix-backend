@@ -1,0 +1,12 @@
+Hello,
+
+Thank you for signing up at Videoflix! To complete your registration, please verify your email address by clicking the link below:
+
+http://localhost:4200/email-verify?code={{ code }}
+
+If the button doesn’t work, copy and paste this URL into your browser:
+
+http://localhost:4200/email-verify?code={{ code }}
+
+Enjoy your movies!
+The Videoflix Team
