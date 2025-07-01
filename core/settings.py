@@ -39,13 +39,11 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
-
-    # Projekt-Apps (CustomUser muss VOR authemail kommen!)
     "accounts",
     "authemail",
     "django_rq",
 
-    # Domain
+    # Projekt-Apps (CustomUser muss VOR authemail kommen!)
     "videos.apps.VideosConfig",
 ]
 
@@ -72,7 +70,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # Hier liegt dein templates/authemail-Verzeichnis
+        # Hier liegen deine angepassten authemail‐Templates
         "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -182,10 +180,17 @@ EMAIL_BCC  = ""
 # ────────────────────────────────────────────────────────
 # django-rest-authemail
 # ────────────────────────────────────────────────────────
-AUTHEMAIL_CONFIRM_EMAIL_ON_GET    = True
-# jetzt wird bei GET /api/accounts/signup/verify/?code=…
-# direkt weitergeleitet auf:
-AUTHEMAIL_CONFIRM_REDIRECT_URL    = f"{FRONTEND_URL}/email-verify/"
-AUTHEMAIL_PASSWORD_RESET_EXPIRE   = 48  # Stunden
-AUTHEMAIL_TOKEN_EXPIRY            = 30  # Tage
-AUTHEMAIL_SEND_FROM               = EMAIL_FROM
+AUTHEMAIL_CONFIRM_EMAIL_ON_GET          = True
+AUTHEMAIL_CONFIRM_REDIRECT_URL          = f"{FRONTEND_URL}/email-verify/"
+AUTHEMAIL_PASSWORD_RESET_EXPIRE         = 48  # Stunden
+AUTHEMAIL_TOKEN_EXPIRY                  = 30  # Tage
+AUTHEMAIL_SEND_FROM                     = EMAIL_FROM
+
+# **WICHTIG**: Hier sagst du django-rest-authemail, welche Templates es nehmen soll
+AUTHEMAIL_PASSWORD_RESET_EMAIL_PLAINTEXT = "authemail/password_reset_email.txt"
+AUTHEMAIL_PASSWORD_RESET_EMAIL_HTML      = "authemail/password_reset_email.html"
+
+# Wenn der User auf den Link klickt, soll er direkt weitergeleitet
+# werden (Front-End) statt das Backend-Formular zu rendern:
+AUTHEMAIL_PASSWORD_RESET_CONFIRM_ON_GET = True
+AUTHEMAIL_PASSWORD_RESET_CONFIRM_REDIRECT_URL = f"{FRONTEND_URL}/new-password/"
