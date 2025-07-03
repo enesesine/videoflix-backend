@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "authemail",
     "django_rq",
 
-    # Local apps  (custom user model before authemail!)
+    # Local apps (custom user model before authemail!)
     "accounts",
     "videos.apps.VideosConfig",
 ]
@@ -87,6 +87,20 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST", "db"),
         "PORT": os.getenv("DB_PORT", 5432),
+    }
+}
+
+# Cache (Redis) ------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # separate Redis DB index (1) to avoid clashes with RQ (0)
+        "LOCATION": f"redis://{os.getenv('REDIS_HOST', 'redis')}:{os.getenv('REDIS_PORT', 6379)}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "COMPRESS_MIN_LEN": 1024,  # compress values >1 KB
+        },
+        "TIMEOUT": 60 * 30,  # 30 min default TTL
     }
 }
 
