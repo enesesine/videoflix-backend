@@ -1,4 +1,7 @@
-# accounts/views.py
+"""
+accounts.views
+Handles registration, login and password-reset endpoints.
+"""
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -6,6 +9,7 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.conf import settings
 
 from rest_framework import generics, serializers, status
 from rest_framework.response import Response
@@ -14,12 +18,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 
-from django.conf import settings
-
 User = get_user_model()
 
-
-# ─── Registration ───────────────────────────────────────────────
+# ── Registration ────────────────────────────────────────────────────────────
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, min_length=8)
@@ -50,15 +51,14 @@ class RegisterView(generics.CreateAPIView):
         except IntegrityError:
             return Response(
                 {"email": ["A user with that email already exists."]},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
         token, _ = Token.objects.get_or_create(user=user)
         return Response({"token": token.key}, status=status.HTTP_201_CREATED)
 
-
-# ─── Login per E-Mail + Passwort ────────────────────────────────
+# ── Login ────────────────────────────────────────────────────────────────────
 class EmailAuthTokenSerializer(serializers.Serializer):
-    email = serializers.EmailField(write_only=True)
+    email = serializers.EmailField()
     password = serializers.CharField(
         style={"input_type": "password"},
         trim_whitespace=False,
@@ -67,13 +67,15 @@ class EmailAuthTokenSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         try:
-            user = User.objects.get(email__iexact=attrs.get("email"))
+            user = User.objects.get(email__iexact=attrs["email"])
         except User.DoesNotExist:
             raise serializers.ValidationError({"non_field_errors": ["Invalid credentials."]})
-        if not user.check_password(attrs.get("password")):
+
+        if not user.check_password(attrs["password"]):
             raise serializers.ValidationError({"non_field_errors": ["Invalid credentials."]})
         if not user.is_active:
             raise serializers.ValidationError({"non_field_errors": ["Account is not active."]})
+
         attrs["user"] = user
         return attrs
 
@@ -89,8 +91,7 @@ class LoginView(ObtainAuthToken):
         token, _ = Token.objects.get_or_create(user=user)
         return Response({"token": token.key}, status=status.HTTP_200_OK)
 
-
-# ─── Forgot Password: schickt eine Reset-Mail mit uid+token ─────
+# ── Forgot-password mail ─────────────────────────────────────────────────────
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -109,6 +110,7 @@ class ForgotPasswordView(APIView):
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             reset_link = f"{settings.FRONTEND_URL}/reset-password/{uidb64}/{token}"
+
             send_mail(
                 subject="Your Videoflix password reset link",
                 message=f"Click here to reset your password: {reset_link}",
@@ -117,15 +119,14 @@ class ForgotPasswordView(APIView):
                 fail_silently=False,
             )
         except User.DoesNotExist:
-            pass  # Sicherheit: nicht verraten, ob die E-Mail existiert
+            pass  # do not reveal whether the address is registered
 
         return Response(
             {"detail": "If that email is registered, you will receive a reset link."},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
-
-# ─── Reset Password: nimmt uid + token + neues Passwort entgegen ──
+# ── Reset password confirmation ─────────────────────────────────────────────
 class ResetPasswordSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()
@@ -133,12 +134,12 @@ class ResetPasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         try:
-            uid = force_str(urlsafe_base64_decode(attrs.get("uid")))
+            uid = force_str(urlsafe_base64_decode(attrs["uid"]))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             raise serializers.ValidationError({"uid": ["Invalid UID."]})
 
-        if not default_token_generator.check_token(user, attrs.get("token")):
+        if not default_token_generator.check_token(user, attrs["token"]):
             raise serializers.ValidationError({"token": ["Invalid or expired token."]})
 
         attrs["user"] = user
@@ -161,5 +162,5 @@ class ResetPasswordView(APIView):
         serializer.save()
         return Response(
             {"detail": "Password has been reset successfully."},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
