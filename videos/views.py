@@ -1,31 +1,29 @@
 # videos/views.py
+"""Read-only API endpoints for categories and videos."""
+
 from rest_framework import viewsets
 from .models import Category, Video
 from .serializers import CategorySerializer, VideoSerializer
 
+
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """GET /api/categories/ and /<id>/."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
     def get_serializer_context(self):
-        """
-        Damit auch bei Category-Serializern bei Bedarf der Request
-        im Kontext zur Verfügung steht (z.B. für Hyperlinked-Felder).
-        """
+        # Pass the request so serializers can build absolute URLs if needed
         ctx = super().get_serializer_context()
         ctx["request"] = self.request
         return ctx
 
 
 class VideoViewSet(viewsets.ReadOnlyModelViewSet):
+    """GET /api/videos/ and /<id>/, ordered newest first."""
     queryset = Video.objects.select_related("category").order_by("-created_at")
     serializer_class = VideoSerializer
 
     def get_serializer_context(self):
-        """
-        Übergebe den Request an den Serializer, damit absolute URLs
-        für file und thumbnail generiert werden können.
-        """
         ctx = super().get_serializer_context()
-        ctx["request"] = self.request
+        ctx["request"] = self.request  # enables absolute file/thumbnail URLs
         return ctx
