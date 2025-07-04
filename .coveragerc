@@ -1,0 +1,12 @@
+# .coveragerc
+[run]
+omit =
+    */migrations/*
+    */tests/*
+    manage.py
+    env/*           # dein virtuelles Env
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == "__main__":

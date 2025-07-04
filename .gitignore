@@ -43,3 +43,6 @@ staticfiles/
 # falls du die default static/ nutzt:
 static/
 
+# Coverage
+.coverage
+htmlcov/
