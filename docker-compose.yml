@@ -1,56 +1,82 @@
-
 services:
-
+  # ─────────────────────────── PostgreSQL ───────────────────────────
   db:
     image: postgres:latest
     container_name: videoflix_database
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ─────────────────────────── Redis (RQ) ────────────────────────────
   redis:
     image: redis:latest
     container_name: videoflix_redis
+    restart: unless-stopped
     volumes:
       - redis_data:/data
 
+  # ──────────────────────── Django + Gunicorn ────────────────────────
   web:
     build:
       context: .
       dockerfile: backend.Dockerfile
-    env_file: .env
     container_name: videoflix_backend
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
     volumes:
       - .:/app
       - videoflix_media:/app/media
       - videoflix_static:/app/static
-    ports:
-      - "8000:8000"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
+    # Zusätzliche Variablen für Vor-/Nachnamen des Superusers
+    environment:
+      DJANGO_SUPERUSER_FIRST_NAME: Admin
+      DJANGO_SUPERUSER_LAST_NAME:  User
+
+    # Alles in *einer* Shell – Dollarzeichen doppeln, damit Compose nicht expandiert
+    command: >
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py createsuperuser \
+          --noinput \
+          --email       $$DJANGO_SUPERUSER_EMAIL \
+          --first_name  $$DJANGO_SUPERUSER_FIRST_NAME \
+          --last_name   $$DJANGO_SUPERUSER_LAST_NAME || true &&
+        gunicorn core.wsgi:application -b 0.0.0.0:8000
+      "
+
+  # ─────────────────────────── RQ-Worker ────────────────────────────
   worker:
     build:
       context: .
       dockerfile: backend.Dockerfile
-    env_file: .env
     container_name: videoflix_worker
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      - web
     volumes:
       - .:/app
       - videoflix_media:/app/media
-      - videoflix_static:/app/static
-    depends_on:
-      - db
-      - redis
-    # Erst Migrations, dann django-rq-Worker starten (lädt Django-Settings)
-    command: >
-      sh -c "python manage.py migrate --noinput &&
-             python manage.py rqworker default"
+    command: python manage.py rqworker default
 
+# ──────────────────────────── Volumes ───────────────────────────────
 volumes:
   postgres_data:
   redis_data:
