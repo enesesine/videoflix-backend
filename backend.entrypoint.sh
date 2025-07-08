@@ -1,43 +1,39 @@
 #!/bin/sh
-
 set -e
 
-echo "Warte auf PostgreSQL auf $DB_HOST:$DB_PORT..."
-
-# -q für "quiet" (keine Ausgabe außer Fehlern)
-# Die Schleife läuft, solange pg_isready *nicht* erfolgreich ist (Exit-Code != 0)
+echo "⏳ Warte auf PostgreSQL auf $DB_HOST:$DB_PORT…"
 while ! pg_isready -h "$DB_HOST" -p "$DB_PORT" -q; do
-  echo "PostgreSQL ist nicht erreichbar - schlafe 1 Sekunde"
+  echo "PostgreSQL nicht erreichbar – warte 1 Sekunde"
   sleep 1
 done
+echo "✅ PostgreSQL ist da – fahre fort…"
 
-echo "PostgreSQL ist bereit - fahre fort..."
-
-# Deine originalen Befehle (ohne wait_for_db)
+echo "📦 Sammle statische Dateien…"
 python manage.py collectstatic --noinput
+
+echo "🔄 Wende Migrations an…"
 python manage.py makemigrations
-python manage.py migrate
+python manage.py migrate --noinput
 
-# Create a superuser using environment variables
-# (Dein Superuser-Erstellungs-Code bleibt gleich)
-python manage.py shell <<EOF
-import os
+ echo " Lege Superuser an (falls nötig)…"
+ python manage.py shell <<PYCODE
+import os, sys
 from django.contrib.auth import get_user_model
-
 User = get_user_model()
-username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
-email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
-password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'adminpassword')
 
-if not User.objects.filter(username=username).exists():
-    print(f"Creating superuser '{username}'...")
-    # Korrekter Aufruf: username hier übergeben
-    User.objects.create_superuser(username=username, email=email, password=password)
-    print(f"Superuser '{username}' created.")
+email    = os.getenv('DJANGO_SUPERUSER_EMAIL')
+password = os.getenv('DJANGO_SUPERUSER_PASSWORD')
+username = os.getenv('DJANGO_SUPERUSER_USERNAME', email)
+
+if not email or not password:
+    sys.exit("✖ DJANGO_SUPERUSER_EMAIL / _PASSWORD fehlt in der .env!")
+
+if not User.objects.filter(email__iexact=email).exists():
+    User.objects.create_superuser(email=email, password=password)
+    print("✓ Superuser angelegt:", email)
 else:
-    print(f"Superuser '{username}' already exists.")
-EOF
+    print("✓ Superuser existiert bereits:", email)
+PYCODE
 
-python manage.py rqworker default &
-
-exec gunicorn core.wsgi:application --bind 0.0.0.0:8000
+echo "🚀 Starte Gunicorn…"
+exec gunicorn core.wsgi:application -b 0.0.0.0:8000

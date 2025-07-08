@@ -7,9 +7,8 @@ from videos.tasks import generate_resolutions
 @pytest.mark.django_db
 @mock.patch("videos.tasks.subprocess.run")
 def test_transcoding_task_queues_four_ffmpeg_calls(mock_run, VideoFactory, tmp_path):
-    # Datei im tmp-Pfad plazieren
     file_path = tmp_path / "orig.mp4"
     file_path.write_bytes(b"dummy")
     video = VideoFactory(file=file_path.open("rb"))
     generate_resolutions(video.id)
-    assert mock_run.call_count == 4  # 120p, 360p, 720p, 1080p
+    assert mock_run.call_count == 4  

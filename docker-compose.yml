@@ -1,5 +1,5 @@
 services:
-  # ─────────────────────────── PostgreSQL ───────────────────────────
+  # ────────────────────────── PostgreSQL ──────────────────────────
   db:
     image: postgres:latest
     container_name: videoflix_database
@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ─────────────────────────── Redis (RQ) ────────────────────────────
+  # ─────────────────────────── Redis (RQ) ─────────────────────────
   redis:
     image: redis:latest
     container_name: videoflix_redis
@@ -24,7 +24,7 @@ services:
     volumes:
       - redis_data:/data
 
-  # ──────────────────────── Django + Gunicorn ────────────────────────
+  # ───────────────────── Django + Gunicorn ────────────────────────
   web:
     build:
       context: .
@@ -44,24 +44,14 @@ services:
       redis:
         condition: service_started
 
-    # Zusätzliche Variablen für Vor-/Nachnamen des Superusers
+    # Falls gewünscht: Vor-/Nachname für den Superuser
     environment:
       DJANGO_SUPERUSER_FIRST_NAME: Admin
       DJANGO_SUPERUSER_LAST_NAME:  User
 
-    # Alles in *einer* Shell – Dollarzeichen doppeln, damit Compose nicht expandiert
-    command: >
-      sh -c "
-        python manage.py migrate --noinput &&
-        python manage.py createsuperuser \
-          --noinput \
-          --email       $$DJANGO_SUPERUSER_EMAIL \
-          --first_name  $$DJANGO_SUPERUSER_FIRST_NAME \
-          --last_name   $$DJANGO_SUPERUSER_LAST_NAME || true &&
-        gunicorn core.wsgi:application -b 0.0.0.0:8000
-      "
 
-  # ─────────────────────────── RQ-Worker ────────────────────────────
+
+  # ─────────────────────────── RQ-Worker ─────────────────────────
   worker:
     build:
       context: .
@@ -76,7 +66,7 @@ services:
       - videoflix_media:/app/media
     command: python manage.py rqworker default
 
-# ──────────────────────────── Volumes ───────────────────────────────
+# ──────────────────────────── Volumes ─────────────────────────────
 volumes:
   postgres_data:
   redis_data:
