@@ -44,7 +44,6 @@ services:
       redis:
         condition: service_started
 
-    # Falls gewünscht: Vor-/Nachname für den Superuser
     environment:
       DJANGO_SUPERUSER_FIRST_NAME: Admin
       DJANGO_SUPERUSER_LAST_NAME:  User
