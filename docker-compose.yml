@@ -63,8 +63,9 @@ services:
     volumes:
       - .:/app
       - videoflix_media:/app/media
-    command: python manage.py rqworker default
 
+    
+    entrypoint: ["python", "manage.py", "rqworker", "default"]
 # ──────────────────────────── Volumes ─────────────────────────────
 volumes:
   postgres_data:
